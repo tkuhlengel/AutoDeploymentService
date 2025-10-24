@@ -17,7 +17,7 @@ from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv()
+load_dotenv(override=True)
 
 # Configuration
 WEBHOOK_SECRET = os.getenv('WEBHOOK_SECRET', '')
