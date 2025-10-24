@@ -123,7 +123,7 @@ RestrictRealtime=true
 RestrictSUIDSGID=true
 RestrictNamespaces=true
 LockPersonality=true
-ReadWritePaths=$LOG_DIR $REPO_PATH
+ReadWritePaths=$LOG_DIR $REPO_PATH $HOME/.cache/uv
 
 # Resource limits
 MemoryMax=512M

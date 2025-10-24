@@ -32,7 +32,7 @@ RestrictRealtime=true
 RestrictSUIDSGID=true
 RestrictNamespaces=true
 LockPersonality=true
-ReadWritePaths=/home/trevor/.local/log/autodeploymentservice /home/trevor/ManagedFileTransfer
+ReadWritePaths=/home/trevor/.local/log/autodeploymentservice /home/trevor/ManagedFileTransfer /home/trevor/.cache/uv
 
 # Resource limits
 MemoryMax=512M
