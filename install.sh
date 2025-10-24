@@ -82,6 +82,7 @@ sudo systemctl stop autodeployment.service || true
 echo "This step requires sudo privileges."
 sudo cp "$SOURCE_DIR/autodeployment.service" "$SYSTEMD_DIR/"
 sudo systemctl daemon-reload
+sudo systemctl restart autodeployment.service || true
 
 echo ""
 echo "============================================"
