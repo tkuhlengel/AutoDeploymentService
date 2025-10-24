@@ -144,7 +144,16 @@ def run_update_script():
 @app.route('/health', methods=['GET'])
 def health():
     """Health check endpoint."""
-    return jsonify({'status': 'healthy', 'timestamp': datetime.now().isoformat()}), 200
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.now().isoformat()
+    }), 200
+
+
+@app.route('/', methods=['POST'])
+def root_webhook():
+    """Handle webhook at root path (redirect to webhook handler)."""
+    return webhook()
 
 
 @app.route('/webhook', methods=['POST'])
