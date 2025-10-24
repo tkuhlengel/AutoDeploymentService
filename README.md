@@ -21,6 +21,16 @@ A lightweight systemd service that receives webhooks from Gitea and automaticall
 5. If a different branch was updated:
    - Runs `git fetch` to update remote tracking branches
 
+## Available Endpoints
+
+The webhook server exposes the following endpoints:
+
+- **POST `/webhook`** - Main webhook endpoint (recommended)
+- **POST `/`** - Alternative webhook endpoint (also accepts webhooks)
+- **GET `/health`** - Health check endpoint, returns service status
+
+> **Webhook Compatibility:** Both `/webhook` and `/` accept POST requests with webhook payloads. Use whichever path your webhook provider is configured for.
+
 ## Files Included
 
 - **`webhook_server.py`** - Main Flask application that handles webhooks
@@ -171,7 +181,12 @@ You should see "active (running)" status.
 
 Fill in the webhook configuration:
 
-- **Target URL**: `http://mftserver.kuhlengel.internal:9000/webhook`
+- **Target URL**: Choose one of the following:
+  - `http://mftserver.kuhlengel.internal:9000/webhook` (recommended)
+  - `http://mftserver.kuhlengel.internal:9000/` (also works)
+  
+  > **Note:** Both URLs work. The webhook endpoint accepts POST requests at both the root path (`/`) and the `/webhook` path for maximum compatibility with different webhook configurations.
+
 - **HTTP Method**: `POST`
 - **POST Content Type**: `application/json`
 - **Secret**: Enter the same secret you configured in `.env`
