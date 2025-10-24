@@ -78,6 +78,7 @@ cd "$(dirname "$0")"
 ./generate_service.sh
 
 echo "Step 7: Installing systemd service..."
+sudo systemctl stop autodeployment.service || true
 echo "This step requires sudo privileges."
 sudo cp "$SOURCE_DIR/autodeployment.service" "$SYSTEMD_DIR/"
 sudo systemctl daemon-reload
@@ -93,7 +94,7 @@ echo "2. Verify all paths in $INSTALL_DIR/.env are correct"
 echo "3. Configure passwordless sudo:"
 echo "   cd $INSTALL_DIR && ./configure_sudo.sh"
 echo "4. Enable and start the service:"
-echo "   sudo systemctl enable autoudeployment"
+echo "   sudo systemctl enable autodeployment"
 echo "   sudo systemctl start autodeployment"
 echo "5. Check service status:"
 echo "   sudo systemctl status autodeployment"
