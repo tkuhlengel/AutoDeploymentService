@@ -68,11 +68,11 @@ echo "UV Path: $UV_PATH"
 echo ""
 
 # Generate the service file content
-SERVICE_FILE="$SCRIPT_DIR/autoupdater.service"
+SERVICE_FILE="$SCRIPT_DIR/autodemployment.service"
 
 cat > "$SERVICE_FILE" << EOF
 [Unit]
-Description=Gitea Webhook Auto-updater Service
+Description=Gitea Webhook Auto-Deploymentr Service
 After=network.target
 Wants=network-online.target
 

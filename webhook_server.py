@@ -169,7 +169,7 @@ def health():
     """Health check endpoint."""
     return jsonify({
         'status': 'healthy',
-        'timestamp': datetime.utcnow().isoformat()
+        'timestamp': datetime.now().isoformat()
     }), 200
 
 
@@ -180,6 +180,8 @@ def webhook():
     signature = request.headers.get('X-Gitea-Signature')
     if not verify_signature(request.data, signature):
         logger.error("Invalid webhook signature")
+        logger.info(f"Provided signature: {signature}")
+        logger.debug(f"Payload: {request}")
         return jsonify({'error': 'Invalid signature'}), 403
     
     # Parse payload
