@@ -1,6 +1,6 @@
 [Unit]
-Description=Gitea Webhook Auto-updater Service
-After=network.target
+Description=Gitea Webhook Auto-Deployment Service
+After=network.target network-online.target
 Wants=network-online.target
 
 [Service]
@@ -10,19 +10,33 @@ Group=trevor
 WorkingDirectory=/home/trevor/autoupdater
 Environment="PATH=/home/trevor/.local/bin:/usr/local/bin:/usr/bin:/bin"
 EnvironmentFile=/home/trevor/autoupdater/.env
-ExecStart=/home/trevor/.local/bin/uv run webhook_server.py
+ExecStart=/home/trevor/.local/bin/uv run /home/trevor/autoupdater/webhook_server.py
 Restart=always
 RestartSec=10
+StartLimitBurst=5
+StartLimitIntervalSec=300
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=autoupdater
+SyslogIdentifier=autodeployment
 
 # Security hardening
-NoNewPrivileges=false
+NoNewPrivileges=true
 PrivateTmp=true
+PrivateDevices=true
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths=/home/trevor/.local/log/autoupdater /home/trevor/ManagedFileTransfer
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+ReadWritePaths=/home/trevor/.local/log/autodeploymentservice /home/trevor/ManagedFileTransfer
+
+# Resource limits
+MemoryMax=512M
+TasksMax=50
 
 [Install]
 WantedBy=multi-user.target

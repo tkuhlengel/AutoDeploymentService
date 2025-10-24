@@ -67,13 +67,31 @@ fi
 echo "UV Path: $UV_PATH"
 echo ""
 
+# Validate webhook_server.py exists
+if [ ! -f "$SCRIPT_DIR/webhook_server.py" ]; then
+    echo "Error: webhook_server.py not found at $SCRIPT_DIR/webhook_server.py"
+    exit 1
+fi
+
+# Validate log directory can be created
+if ! mkdir -p "$LOG_DIR" 2>/dev/null; then
+    echo "Warning: Cannot create log directory at $LOG_DIR"
+    echo "Make sure you have write permissions or the service will fail to start"
+fi
+
+# Validate repo path exists
+if [ ! -d "$REPO_PATH" ]; then
+    echo "Warning: Repository path $REPO_PATH does not exist"
+    echo "The service may fail to operate correctly"
+fi
+
 # Generate the service file content
-SERVICE_FILE="$SCRIPT_DIR/autodemployment.service"
+SERVICE_FILE="$SCRIPT_DIR/autodeployment.service"
 
 cat > "$SERVICE_FILE" << EOF
 [Unit]
-Description=Gitea Webhook Auto-Deploymentr Service
-After=network.target
+Description=Gitea Webhook Auto-Deployment Service
+After=network.target network-online.target
 Wants=network-online.target
 
 [Service]
@@ -83,19 +101,33 @@ Group=$USER_GROUP
 WorkingDirectory=$SCRIPT_DIR
 Environment="PATH=$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin"
 EnvironmentFile=$SCRIPT_DIR/.env
-ExecStart=$UV_PATH run webhook_server.py
+ExecStart=$UV_PATH run $SCRIPT_DIR/webhook_server.py
 Restart=always
 RestartSec=10
+StartLimitBurst=5
+StartLimitIntervalSec=300
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=autoupdater
+SyslogIdentifier=autodeployment
 
 # Security hardening
-NoNewPrivileges=false
+NoNewPrivileges=true
 PrivateTmp=true
+PrivateDevices=true
 ProtectSystem=strict
 ProtectHome=read-only
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
 ReadWritePaths=$LOG_DIR $REPO_PATH
+
+# Resource limits
+MemoryMax=512M
+TasksMax=50
 
 [Install]
 WantedBy=multi-user.target
@@ -111,8 +143,11 @@ echo ""
 echo "To install this service:"
 echo "  sudo cp $SERVICE_FILE /etc/systemd/system/"
 echo "  sudo systemctl daemon-reload"
-echo "  sudo systemctl enable autoupdater"
-echo "  sudo systemctl start autoupdater"
+echo "  sudo systemctl enable autodeployment"
+echo "  sudo systemctl start autodeployment"
 echo ""
 echo "To check status:"
-echo "  sudo systemctl status autoupdater"
+echo "  sudo systemctl status autodeployment"
+echo ""
+echo "To view logs:"
+echo "  sudo journalctl -u autodeployment -f"
