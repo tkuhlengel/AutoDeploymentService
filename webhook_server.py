@@ -217,6 +217,9 @@ if __name__ == '__main__':
     logger.info(f"Update script: {UPDATE_SCRIPT}")
     logger.info(f"Logs directory: {LOG_DIR}")
     logger.info(f"Debug mode: {DEBUG}")
+    
+    # Set Flask debug mode
+    app.debug = DEBUG
 
     # Run Flask app
-    app.run(host='0.0.0.0', port=PORT, debug=DEBUG)
+    app.run(host='0.0.0.0', port=PORT, debug=DEBUG, use_reloader=DEBUG)
