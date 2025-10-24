@@ -93,6 +93,8 @@ cat > "$SERVICE_FILE" << EOF
 Description=Gitea Webhook Auto-Deployment Service
 After=network.target network-online.target
 Wants=network-online.target
+StartLimitBurst=5
+StartLimitIntervalSec=300
 
 [Service]
 Type=simple
@@ -101,11 +103,9 @@ Group=$USER_GROUP
 WorkingDirectory=$INSTALL_DIR
 Environment="PATH=$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin"
 EnvironmentFile=$INSTALL_DIR/.env
-ExecStart=$UV_PATH run $INSTALL_DIR/webhook_server.py
+ExecStart=uv run $INSTALL_DIR/webhook_server.py
 Restart=always
 RestartSec=10
-StartLimitBurst=5
-StartLimitIntervalSec=300
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=autodeployment

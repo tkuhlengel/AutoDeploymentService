@@ -2,6 +2,8 @@
 Description=Gitea Webhook Auto-Deployment Service
 After=network.target network-online.target
 Wants=network-online.target
+StartLimitBurst=5
+StartLimitIntervalSec=300
 
 [Service]
 Type=simple
@@ -9,12 +11,10 @@ User=trevor
 Group=trevor
 WorkingDirectory=/home/trevor/autodeployer
 Environment="PATH=/home/trevor/.local/bin:/usr/local/bin:/usr/bin:/bin"
-EnvironmentFile=/home/trevor/autoupdater/.env
-ExecStart=/home/trevor/.local/bin/uv run /home/trevor/autoupdater/webhook_server.py
+EnvironmentFile=/home/trevor/autodeployer/.env
+ExecStart=/home/trevor/.local/bin/uv run /home/trevor/autodeployer/webhook_server.py
 Restart=always
 RestartSec=10
-StartLimitBurst=5
-StartLimitIntervalSec=300
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=autodeployment
