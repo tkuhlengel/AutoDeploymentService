@@ -7,7 +7,7 @@ Wants=network-online.target
 Type=simple
 User=trevor
 Group=trevor
-WorkingDirectory=/home/trevor/autoupdater
+WorkingDirectory=/home/trevor/autodeployer
 Environment="PATH=/home/trevor/.local/bin:/usr/local/bin:/usr/bin:/bin"
 EnvironmentFile=/home/trevor/autoupdater/.env
 ExecStart=/home/trevor/.local/bin/uv run /home/trevor/autoupdater/webhook_server.py
@@ -32,7 +32,7 @@ RestrictRealtime=true
 RestrictSUIDSGID=true
 RestrictNamespaces=true
 LockPersonality=true
-ReadWritePaths=/home/trevor/.local/log/autodeploymentservice /home/trevor/ManagedFileTransfer /home/trevor/.cache/uv
+ReadWritePaths=/home/trevor/.local/log/autodeploymentservice /home/trevor/ManagedFileTransfer /home/trevor/.cache/uv /home/trevor/autodeployer
 
 # Resource limits
 MemoryMax=512M

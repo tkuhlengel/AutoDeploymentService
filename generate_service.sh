@@ -98,10 +98,10 @@ Wants=network-online.target
 Type=simple
 User=$CURRENT_USER
 Group=$USER_GROUP
-WorkingDirectory=$SCRIPT_DIR
+WorkingDirectory=$INSTALL_DIR
 Environment="PATH=$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin"
-EnvironmentFile=$SCRIPT_DIR/.env
-ExecStart=$UV_PATH run $SCRIPT_DIR/webhook_server.py
+EnvironmentFile=$INSTALL_DIR/.env
+ExecStart=$UV_PATH run $INSTALL_DIR/webhook_server.py
 Restart=always
 RestartSec=10
 StartLimitBurst=5
@@ -123,7 +123,7 @@ RestrictRealtime=true
 RestrictSUIDSGID=true
 RestrictNamespaces=true
 LockPersonality=true
-ReadWritePaths=$LOG_DIR $REPO_PATH $HOME/.cache/uv
+ReadWritePaths=$LOG_DIR $REPO_PATH $HOME/.cache/uv $INSTALL_DIR
 
 # Resource limits
 MemoryMax=512M
