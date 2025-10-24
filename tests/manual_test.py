@@ -53,7 +53,7 @@ def test_push_webhook(branch='main', event='push'):
         response = requests.post(f'{BASE_URL}/webhook', json=payload, headers=headers, timeout=10)
         print(f"Status Code: {response.status_code}")
         print(f"Response: {response.json()}")
-        return response.status_code == 200 or response.status_code == 500  # 500 is ok if repo doesn't exist
+        return response.status_code in {200, 500}  # 500 is ok if repo doesn't exist
     except Exception as e:
         print(f"Error: {e}")
         return False
@@ -97,7 +97,7 @@ def test_non_push_event():
         return False
 
 
-def main():
+def main() -> None:
     """Run all manual tests."""
     print("=" * 60)
     print("Webhook Server Manual Testing")

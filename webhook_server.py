@@ -34,7 +34,7 @@ log_file = Path(LOG_DIR) / 'autodeploymentservice.log'
 logging.basicConfig(
     level=logging.DEBUG if DEBUG else logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[logging.FileHandler(log_file), logging.StreamHandler(sys.stdout)]
+    handlers=[logging.FileHandler(log_file), logging.StreamHandler(sys.stdout)],
 )
 
 logger = logging.getLogger(__name__)
@@ -78,7 +78,7 @@ def get_current_branch():
         return None
 
 
-def run_git_fetch():
+def run_git_fetch() -> bool:
     """Run git fetch in the repository."""
     try:
         logger.info("Running git fetch...")
@@ -95,7 +95,7 @@ def run_git_fetch():
         return False
 
 
-def run_git_pull():
+def run_git_pull() -> bool:
     """Run git pull in the repository."""
     try:
         logger.info("Running git pull...")
@@ -112,7 +112,7 @@ def run_git_pull():
         return False
 
 
-def run_update_script():
+def run_update_script() -> bool:
     """Run the deployment update script via sudo."""
     try:
         logger.info(f"Running update script: {UPDATE_SCRIPT}")
@@ -144,10 +144,7 @@ def run_update_script():
 @app.route('/health', methods=['GET'])
 def health():
     """Health check endpoint."""
-    return jsonify({
-        'status': 'healthy',
-        'timestamp': datetime.now().isoformat()
-    }), 200
+    return jsonify({'status': 'healthy', 'timestamp': datetime.now().isoformat()}), 200
 
 
 @app.route('/', methods=['POST'])
@@ -226,7 +223,7 @@ if __name__ == '__main__':
     logger.info(f"Update script: {UPDATE_SCRIPT}")
     logger.info(f"Logs directory: {LOG_DIR}")
     logger.info(f"Debug mode: {DEBUG}")
-    
+
     # Set Flask debug mode
     app.debug = DEBUG
 

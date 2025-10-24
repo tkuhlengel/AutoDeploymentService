@@ -86,24 +86,24 @@ def mock_env(temp_repo, temp_log_dir, monkeypatch):
 class TestHealthEndpoint:
     """Test the /health endpoint."""
 
-    def test_health_endpoint_returns_200(self, client):
+    def test_health_endpoint_returns_200(self, client) -> None:
         """Test that health endpoint returns 200 OK."""
         response = client.get('/health')
         assert response.status_code == 200
 
-    def test_health_endpoint_returns_json(self, client):
+    def test_health_endpoint_returns_json(self, client) -> None:
         """Test that health endpoint returns JSON."""
         response = client.get('/health')
         assert response.content_type == 'application/json'
 
-    def test_health_endpoint_contains_status(self, client):
+    def test_health_endpoint_contains_status(self, client) -> None:
         """Test that health endpoint contains status field."""
         response = client.get('/health')
         data = response.get_json()
         assert 'status' in data
         assert data['status'] == 'healthy'
 
-    def test_health_endpoint_contains_timestamp(self, client):
+    def test_health_endpoint_contains_timestamp(self, client) -> None:
         """Test that health endpoint contains timestamp."""
         response = client.get('/health')
         data = response.get_json()
@@ -114,7 +114,7 @@ class TestHealthEndpoint:
 class TestSignatureVerification:
     """Test webhook signature verification."""
 
-    def test_verify_signature_with_valid_signature(self):
+    def test_verify_signature_with_valid_signature(self) -> None:
         """Test signature verification with valid signature."""
         payload = b'{"test": "data"}'
         secret = 'test_secret'
@@ -123,7 +123,7 @@ class TestSignatureVerification:
         with patch.object(webhook_server, 'WEBHOOK_SECRET', secret):
             assert webhook_server.verify_signature(payload, expected_sig) is True
 
-    def test_verify_signature_with_sha256_prefix(self):
+    def test_verify_signature_with_sha256_prefix(self) -> None:
         """Test signature verification with sha256= prefix."""
         payload = b'{"test": "data"}'
         secret = 'test_secret'
@@ -132,7 +132,7 @@ class TestSignatureVerification:
         with patch.object(webhook_server, 'WEBHOOK_SECRET', secret):
             assert webhook_server.verify_signature(payload, expected_sig) is True
 
-    def test_verify_signature_with_invalid_signature(self):
+    def test_verify_signature_with_invalid_signature(self) -> None:
         """Test signature verification with invalid signature."""
         payload = b'{"test": "data"}'
         secret = 'test_secret'
@@ -140,14 +140,14 @@ class TestSignatureVerification:
         with patch.object(webhook_server, 'WEBHOOK_SECRET', secret):
             assert webhook_server.verify_signature(payload, 'invalid_signature') is False
 
-    def test_verify_signature_without_secret(self):
+    def test_verify_signature_without_secret(self) -> None:
         """Test signature verification when no secret is configured."""
         payload = b'{"test": "data"}'
 
         with patch.object(webhook_server, 'WEBHOOK_SECRET', ''):
             assert webhook_server.verify_signature(payload, None) is True
 
-    def test_verify_signature_without_signature_header(self):
+    def test_verify_signature_without_signature_header(self) -> None:
         """Test signature verification when signature is missing."""
         payload = b'{"test": "data"}'
         secret = 'test_secret'
@@ -159,21 +159,21 @@ class TestSignatureVerification:
 class TestGitOperations:
     """Test git operation functions."""
 
-    def test_get_current_branch(self, temp_repo):
+    def test_get_current_branch(self, temp_repo) -> None:
         """Test getting current branch."""
         with patch.object(webhook_server, 'REPO_PATH', temp_repo):
             branch = webhook_server.get_current_branch()
             # Default branch should be 'master' or 'main'
             assert branch in ['master', 'main']
 
-    def test_get_current_branch_with_invalid_repo(self):
+    def test_get_current_branch_with_invalid_repo(self) -> None:
         """Test getting current branch with invalid repo path."""
         with patch.object(webhook_server, 'REPO_PATH', '/nonexistent/path'):
             branch = webhook_server.get_current_branch()
             assert branch is None
 
     @patch('subprocess.run')
-    def test_run_git_fetch_success(self, mock_run):
+    def test_run_git_fetch_success(self, mock_run) -> None:
         """Test successful git fetch."""
         mock_run.return_value = MagicMock(returncode=0, stdout='Success', stderr='')
 
@@ -182,7 +182,7 @@ class TestGitOperations:
         mock_run.assert_called_once()
 
     @patch('subprocess.run')
-    def test_run_git_fetch_failure(self, mock_run):
+    def test_run_git_fetch_failure(self, mock_run) -> None:
         """Test failed git fetch."""
         mock_run.return_value = MagicMock(returncode=1, stdout='', stderr='Error')
 
@@ -190,7 +190,7 @@ class TestGitOperations:
         assert result is False
 
     @patch('subprocess.run')
-    def test_run_git_pull_success(self, mock_run):
+    def test_run_git_pull_success(self, mock_run) -> None:
         """Test successful git pull."""
         mock_run.return_value = MagicMock(returncode=0, stdout='Already up to date', stderr='')
 
@@ -198,7 +198,7 @@ class TestGitOperations:
         assert result is True
 
     @patch('subprocess.run')
-    def test_run_git_pull_failure(self, mock_run):
+    def test_run_git_pull_failure(self, mock_run) -> None:
         """Test failed git pull."""
         mock_run.return_value = MagicMock(returncode=1, stdout='', stderr='Error')
 
@@ -210,7 +210,7 @@ class TestUpdateScript:
     """Test update script execution."""
 
     @patch('subprocess.run')
-    def test_run_update_script_success(self, mock_run):
+    def test_run_update_script_success(self, mock_run) -> None:
         """Test successful update script execution."""
         mock_run.return_value = MagicMock(returncode=0, stdout='Deployment complete', stderr='')
 
@@ -221,7 +221,7 @@ class TestUpdateScript:
         assert args[0] == 'sudo'
 
     @patch('subprocess.run')
-    def test_run_update_script_failure(self, mock_run):
+    def test_run_update_script_failure(self, mock_run) -> None:
         """Test failed update script execution."""
         mock_run.return_value = MagicMock(returncode=1, stdout='', stderr='Script error')
 
@@ -229,7 +229,7 @@ class TestUpdateScript:
         assert result is False
 
     @patch('subprocess.run')
-    def test_run_update_script_timeout(self, mock_run):
+    def test_run_update_script_timeout(self, mock_run) -> None:
         """Test update script timeout."""
         mock_run.side_effect = subprocess.TimeoutExpired(cmd='sudo script.sh', timeout=300)
 
@@ -253,7 +253,7 @@ class TestWebhookEndpoint:
         payload_bytes = json.dumps(payload_dict).encode('utf-8')
         return hmac.new(secret.encode('utf-8'), payload_bytes, hashlib.sha256).hexdigest()
 
-    def test_webhook_requires_signature(self, client):
+    def test_webhook_requires_signature(self, client) -> None:
         """Test webhook without signature returns 403."""
         payload = self.create_webhook_payload()
 
@@ -261,7 +261,7 @@ class TestWebhookEndpoint:
             response = client.post('/webhook', json=payload, headers={'X-Gitea-Event': 'push'})
             assert response.status_code == 403
 
-    def test_webhook_with_invalid_signature(self, client):
+    def test_webhook_with_invalid_signature(self, client) -> None:
         """Test webhook with invalid signature returns 403."""
         payload = self.create_webhook_payload()
 
@@ -269,13 +269,13 @@ class TestWebhookEndpoint:
             response = client.post('/webhook', json=payload, headers={'X-Gitea-Event': 'push', 'X-Gitea-Signature': 'invalid_signature'})
             assert response.status_code == 403
 
-    def test_webhook_without_payload(self, client):
+    def test_webhook_without_payload(self, client) -> None:
         """Test webhook without JSON payload returns 400."""
         with patch.object(webhook_server, 'WEBHOOK_SECRET', ''):
             response = client.post('/webhook', data='not json', headers={'X-Gitea-Event': 'push'}, content_type='application/json')
             assert response.status_code == 400
 
-    def test_webhook_ignores_non_push_events(self, client):
+    def test_webhook_ignores_non_push_events(self, client) -> None:
         """Test webhook ignores non-push events."""
         payload = self.create_webhook_payload()
         signature = self.create_signature(payload, 'test_secret')
@@ -291,7 +291,7 @@ class TestWebhookEndpoint:
     @patch('webhook_server.run_git_pull')
     @patch('webhook_server.get_current_branch')
     @patch('webhook_server.verify_signature')
-    def test_webhook_pull_on_matching_branch(self, mock_verify, mock_get_branch, mock_pull, mock_update, client):
+    def test_webhook_pull_on_matching_branch(self, mock_verify, mock_get_branch, mock_pull, mock_update, client) -> None:
         """Test webhook performs pull when pushed branch matches current."""
         mock_verify.return_value = True
         mock_get_branch.return_value = 'main'
@@ -313,7 +313,7 @@ class TestWebhookEndpoint:
     @patch('webhook_server.run_git_fetch')
     @patch('webhook_server.get_current_branch')
     @patch('webhook_server.verify_signature')
-    def test_webhook_fetch_on_different_branch(self, mock_verify, mock_get_branch, mock_fetch, client):
+    def test_webhook_fetch_on_different_branch(self, mock_verify, mock_get_branch, mock_fetch, client) -> None:
         """Test webhook performs fetch when pushed branch differs from current."""
         mock_verify.return_value = True
         mock_get_branch.return_value = 'main'
@@ -334,7 +334,7 @@ class TestWebhookEndpoint:
     @patch('webhook_server.run_git_pull')
     @patch('webhook_server.get_current_branch')
     @patch('webhook_server.verify_signature')
-    def test_webhook_pull_failure_returns_500(self, mock_verify, mock_get_branch, mock_pull, client):
+    def test_webhook_pull_failure_returns_500(self, mock_verify, mock_get_branch, mock_pull, client) -> None:
         """Test webhook returns 500 when pull fails."""
         mock_verify.return_value = True
         mock_get_branch.return_value = 'main'
@@ -353,7 +353,7 @@ class TestWebhookEndpoint:
     @patch('webhook_server.run_git_pull')
     @patch('webhook_server.get_current_branch')
     @patch('webhook_server.verify_signature')
-    def test_webhook_update_script_failure_returns_500(self, mock_verify, mock_get_branch, mock_pull, mock_update, client):
+    def test_webhook_update_script_failure_returns_500(self, mock_verify, mock_get_branch, mock_pull, mock_update, client) -> None:
         """Test webhook returns 500 when update script fails."""
         mock_verify.return_value = True
         mock_get_branch.return_value = 'main'
@@ -370,7 +370,7 @@ class TestWebhookEndpoint:
         assert 'error' in data
 
     @patch('webhook_server.get_current_branch')
-    def test_webhook_invalid_ref_returns_400(self, mock_get_branch, client):
+    def test_webhook_invalid_ref_returns_400(self, mock_get_branch, client) -> None:
         """Test webhook with invalid ref returns 400."""
         mock_get_branch.return_value = 'main'
 
@@ -384,7 +384,7 @@ class TestWebhookEndpoint:
 
     @patch('webhook_server.get_current_branch')
     @patch('webhook_server.verify_signature')
-    def test_webhook_branch_detection_failure_returns_500(self, mock_verify, mock_get_branch, client):
+    def test_webhook_branch_detection_failure_returns_500(self, mock_verify, mock_get_branch, client) -> None:
         """Test webhook returns 500 when branch detection fails."""
         mock_verify.return_value = True
         mock_get_branch.return_value = None
@@ -400,12 +400,12 @@ class TestWebhookEndpoint:
 class TestConfiguration:
     """Test configuration loading and validation."""
 
-    def test_default_configuration_values(self):
+    def test_default_configuration_values(self) -> None:
         """Test default configuration values are set."""
         # These would be tested in integration but we can verify the logic
         assert webhook_server.app is not None
 
-    def test_log_directory_creation(self, temp_log_dir):
+    def test_log_directory_creation(self, temp_log_dir) -> None:
         """Test that log directory is created if it doesn't exist."""
         new_log_dir = Path(temp_log_dir) / 'subdir' / 'logs'
 
@@ -419,7 +419,7 @@ class TestIntegration:
     """Integration tests with real git operations (where safe)."""
 
     @patch('webhook_server.run_update_script')
-    def test_full_webhook_flow_with_real_repo(self, mock_update, client, temp_repo):
+    def test_full_webhook_flow_with_real_repo(self, mock_update, client, temp_repo) -> None:
         """Test complete webhook flow with a real git repository."""
         mock_update.return_value = True
 
