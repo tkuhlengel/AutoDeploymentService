@@ -22,6 +22,7 @@ fi
 
 # Define paths
 source .env
+SOURCE_DIR="$(pwd)"
 #INSTALL_DIR="/home/trevor/autoupdater"
 #SERVICE_FILE="autoupdater.service"
 #SYSTEMD_DIR="/etc/systemd/system"
@@ -78,7 +79,7 @@ cd "$(dirname "$0")"
 
 echo "Step 7: Installing systemd service..."
 echo "This step requires sudo privileges."
-sudo cp "$INSTALL_DIR/autodeployment.service" "$SYSTEMD_DIR/"
+sudo cp "$SOURCE_DIR/autodeployment.service" "$SYSTEMD_DIR/"
 sudo systemctl daemon-reload
 
 echo ""
