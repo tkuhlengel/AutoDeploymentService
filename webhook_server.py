@@ -25,13 +25,16 @@ PORT = int(os.getenv('PORT', 9000))
 REPO_PATH = os.getenv('REPO_PATH', '/home/trevor/ManagedFileTransfer')
 UPDATE_SCRIPT = os.getenv('UPDATE_SCRIPT', '/home/trevor/ManagedFileTransfer/prod_config/scripts/uv_update_deployment.sh')
 LOG_DIR = os.getenv('LOG_DIR', '/home/trevor/.local/log/autodeploymentservice')
+DEBUG = os.getenv('DEBUG', 'false').lower() in ('true', '1', 'yes')
 
 # Setup logging
 Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
 log_file = Path(LOG_DIR) / 'autodeploymentservice.log'
 
 logging.basicConfig(
-    level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', handlers=[logging.FileHandler(log_file), logging.StreamHandler(sys.stdout)]
+    level=logging.DEBUG if DEBUG else logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[logging.FileHandler(log_file), logging.StreamHandler(sys.stdout)]
 )
 
 logger = logging.getLogger(__name__)
@@ -213,6 +216,7 @@ if __name__ == '__main__':
     logger.info(f"Monitoring repository: {REPO_PATH}")
     logger.info(f"Update script: {UPDATE_SCRIPT}")
     logger.info(f"Logs directory: {LOG_DIR}")
+    logger.info(f"Debug mode: {DEBUG}")
 
     # Run Flask app
-    app.run(host='0.0.0.0', port=PORT, debug=False)
+    app.run(host='0.0.0.0', port=PORT, debug=DEBUG)
