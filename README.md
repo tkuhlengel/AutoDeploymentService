@@ -43,19 +43,29 @@ A lightweight systemd service that receives webhooks from Gitea and automaticall
 
 ### 1. Transfer Files to Remote Server
 
-Copy the `autoupdater` directory to your remote server:
+Copy the `AutoDeploymentService` directory to your remote server:
 
 ```bash
-scp -r autoupdater trevor@mftserver.kuhlengel.internal:~/
+scp -r AutoDeploymentService trevor@mftserver.kuhlengel.internal:~/
 ```
 
-### 2. Run Installation Script
+### 2. Edit the `.env` File
+On the remote server, navigate to the `AutoDeploymentService` directory and edit the `.env` file:
+
+```bash
+cd ~/AutoDeploymentService
+cp .env.example .env
+vim .env
+```
+Update the variables as needed, especially `WEBHOOK_SECRET` and `INSTALL_DIR`.
+
+### 3. Run Installation Script
 
 SSH into the remote server and run the installation script:
 
 ```bash
 ssh trevor@mftserver.kuhlengel.internal
-cd ~/autoupdater
+cd ~/AutoDeploymentService
 ./install.sh
 ```
 

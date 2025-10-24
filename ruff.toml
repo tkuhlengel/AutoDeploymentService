@@ -1,0 +1,33 @@
+# Basic settings
+line-length = 160            # maximum allowed line length
+target-version = "py312"     # Python version to target
+exclude = ["build", "dist", ".venv"]         # glob patterns to skip linting/formatting
+extend-exclude = ["migrations/*","webhook_requests/*","systemd/*"]            # additional patterns to exclude
+force-exclude = false        # enforce exclude even on explicitly passed paths
+fix = true                    # automatically apply “safe” fixes
+fix-only = true               # only report after applying fixable violations
+
+# Rule control
+[lint]
+select = ["E", "F", "W", "ANN", "B", "ICN", "TC", "ARG", "S","COM","PLE", "PLR", "PLW"]  # prefixes or codes to enable
+extend-select = []            # extra rule codes to add
+ignore = ["E203", "E501", "S110", "E722", "COM812"]   # disable specific rules
+unfixable = ["B"]             # rule codes that should *not* be auto-fixed
+#unsafe-fix = ["B"]          # allow “unsafe” fixes that may change code behavior
+# per-file-ignores = { "tests/*.py" = ["D", "S101"] }  # disable in files (optional)
+
+# Formatter settings
+[format]
+quote-style = "preserve"       # preserve existing quote styles
+indent-style = "space"         # use spaces for indentation
+docstring-code-format = true   # reformat Python code blocks inside docstrings
+# NOPE, doesn't work You could add `line-length = 120` here if you want a separate wrap width for formatting
+#line-length = 160            # wrap width for formatting
+
+# Analysis / advanced
+[analyze]
+string-imports-min-dots = 1    # threshold for converting string-based imports to module references
+
+# pycodestyle-specific tweak
+[lint.pycodestyle]
+ignore-overlong-task-comments = true   # allow very long “# TODO / NOTE” comments

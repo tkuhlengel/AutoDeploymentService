@@ -7,16 +7,25 @@ echo "============================================"
 echo ""
 
 # Check if running as trevor user
-if [ "$(whoami)" != "trevor" ]; then
-    echo "Error: This script must be run as the 'trevor' user"
+if [ "$(whoami)" == "root" ]; then
+    echo "Error: This script must not be run as root user"
+    exit 1
+fi
+
+# Check if the .env file exists in the current directory
+if [ ! -f .env ]; then
+    echo "Error: .env file not found in the current directory"
+    echo "Please create the .env file before running this script."
+    echo "Hint: You can copy from .env.example and modify as needed."
     exit 1
 fi
 
 # Define paths
-INSTALL_DIR="/home/trevor/autoupdater"
-SERVICE_FILE="autoupdater.service"
-SYSTEMD_DIR="/etc/systemd/system"
-LOG_DIR="/home/trevor/.local/log/autoupdater"
+source .env
+#INSTALL_DIR="/home/trevor/autoupdater"
+#SERVICE_FILE="autoupdater.service"
+#SYSTEMD_DIR="/etc/systemd/system"
+#LOG_DIR="/home/trevor/.local/log/autoupdater"
 
 # Check if UV is installed, if not, install it
 echo "Step 0: Checking for UV..."
@@ -49,10 +58,10 @@ if [ -f "$INSTALL_DIR/.env" ]; then
     echo "Warning: .env file already exists at $INSTALL_DIR/.env"
     echo "Skipping .env creation. Please verify your configuration."
 else
-    cp .env.example "$INSTALL_DIR/.env"
+    # Since this is already required to run the install, we can copy it
+    cp .env "$INSTALL_DIR/.env"
     echo "Created .env file at $INSTALL_DIR/.env"
     echo "IMPORTANT: Edit $INSTALL_DIR/.env and set your WEBHOOK_SECRET and other variables, then run this script again!"
-    return 1
 fi
 
 echo "Step 4: Creating log directory..."
@@ -83,11 +92,11 @@ echo "2. Verify all paths in $INSTALL_DIR/.env are correct"
 echo "3. Configure passwordless sudo:"
 echo "   cd $INSTALL_DIR && ./configure_sudo.sh"
 echo "4. Enable and start the service:"
-echo "   sudo systemctl enable autoupdater"
-echo "   sudo systemctl start autoupdater"
+echo "   sudo systemctl enable autoudeployment"
+echo "   sudo systemctl start autodeployment"
 echo "5. Check service status:"
-echo "   sudo systemctl status autoupdater"
+echo "   sudo systemctl status autodeployment"
 echo "6. View logs:"
-echo "   journalctl -u autoupdater -f"
-echo "   tail -f $LOG_DIR/autoupdater.log"
+echo "   journalctl -u autodeployment -f"
+echo "   tail -f $LOG_DIR/autodeploymentservice.log"
 echo ""

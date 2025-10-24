@@ -24,11 +24,11 @@ WEBHOOK_SECRET = os.getenv('WEBHOOK_SECRET', '')
 PORT = int(os.getenv('PORT', 9000))
 REPO_PATH = os.getenv('REPO_PATH', '/home/trevor/ManagedFileTransfer')
 UPDATE_SCRIPT = os.getenv('UPDATE_SCRIPT', '/home/trevor/ManagedFileTransfer/prod_config/scripts/uv_update_deployment.sh')
-LOG_DIR = os.getenv('LOG_DIR', '/home/trevor/.local/log/autoupdater')
+LOG_DIR = os.getenv('LOG_DIR', '/home/trevor/.local/log/autodeploymentservice')
 
 # Setup logging
 Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
-log_file = Path(LOG_DIR) / 'autoupdater.log'
+log_file = Path(LOG_DIR) / 'autodeploymentservice.log'
 
 logging.basicConfig(
     level=logging.INFO,
@@ -177,7 +177,7 @@ def health():
 def webhook():
     """Handle incoming Gitea webhook."""
     # Verify signature
-    signature = request.headers.get('X-Gitea-Signature')
+    signature = request.headers.get('X-Hub-Signature-256')
     if not verify_signature(request.data, signature):
         logger.error("Invalid webhook signature")
         logger.info(f"Provided signature: {signature}")
