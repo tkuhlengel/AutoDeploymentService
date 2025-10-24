@@ -1,0 +1,13 @@
+[project]
+name = "gitea-autoupdater"
+version = "1.0.0"
+description = "Gitea webhook receiver for automatic repository updates"
+requires-python = ">=3.8"
+dependencies = [
+    "flask>=3.0.0",
+    "python-dotenv>=1.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

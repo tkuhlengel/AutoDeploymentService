@@ -1,0 +1,28 @@
+[Unit]
+Description=Gitea Webhook Auto-updater Service
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=trevor
+Group=trevor
+WorkingDirectory=/home/trevor/autoupdater
+Environment="PATH=/home/trevor/.local/bin:/usr/local/bin:/usr/bin:/bin"
+EnvironmentFile=/home/trevor/autoupdater/.env
+ExecStart=/home/trevor/.local/bin/uv run webhook_server.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=autoupdater
+
+# Security hardening
+NoNewPrivileges=false
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/trevor/.local/log/autoupdater /home/trevor/ManagedFileTransfer
+
+[Install]
+WantedBy=multi-user.target
