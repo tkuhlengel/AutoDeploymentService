@@ -31,12 +31,7 @@ Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
 log_file = Path(LOG_DIR) / 'autodeploymentservice.log'
 
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(log_file),
-        logging.StreamHandler(sys.stdout)
-    ]
+    level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', handlers=[logging.FileHandler(log_file), logging.StreamHandler(sys.stdout)]
 )
 
 logger = logging.getLogger(__name__)
@@ -49,35 +44,25 @@ def verify_signature(payload, signature):
     if not WEBHOOK_SECRET:
         logger.warning("No webhook secret configured - skipping signature verification")
         return True
-    
+
     if not signature:
         logger.error("No signature provided in request")
         return False
-    
+
     # Gitea uses SHA256 HMAC
-    expected_signature = hmac.new(
-        WEBHOOK_SECRET.encode('utf-8'),
-        payload,
-        hashlib.sha256
-    ).hexdigest()
-    
+    expected_signature = hmac.new(WEBHOOK_SECRET.encode('utf-8'), payload, hashlib.sha256).hexdigest()
+
     # Remove 'sha256=' prefix if present
     if signature.startswith('sha256='):
         signature = signature[7:]
-    
+
     return hmac.compare_digest(expected_signature, signature)
 
 
 def get_current_branch():
     """Get the currently checked out branch in the repository."""
     try:
-        result = subprocess.run(
-            ['git', 'rev-parse', '--abbrev-ref', 'HEAD'],
-            cwd=REPO_PATH,
-            capture_output=True,
-            text=True,
-            timeout=10
-        )
+        result = subprocess.run(['git', 'rev-parse', '--abbrev-ref', 'HEAD'], check=False, cwd=REPO_PATH, capture_output=True, text=True, timeout=10)
         if result.returncode == 0:
             branch = result.stdout.strip()
             logger.info(f"Current branch: {branch}")
@@ -94,13 +79,7 @@ def run_git_fetch():
     """Run git fetch in the repository."""
     try:
         logger.info("Running git fetch...")
-        result = subprocess.run(
-            ['git', 'fetch', '--all'],
-            cwd=REPO_PATH,
-            capture_output=True,
-            text=True,
-            timeout=60
-        )
+        result = subprocess.run(['git', 'fetch', '--all'], check=False, cwd=REPO_PATH, capture_output=True, text=True, timeout=60)
         if result.returncode == 0:
             logger.info("Git fetch completed successfully")
             logger.debug(f"Fetch output: {result.stdout}")
@@ -117,13 +96,7 @@ def run_git_pull():
     """Run git pull in the repository."""
     try:
         logger.info("Running git pull...")
-        result = subprocess.run(
-            ['git', 'pull'],
-            cwd=REPO_PATH,
-            capture_output=True,
-            text=True,
-            timeout=60
-        )
+        result = subprocess.run(['git', 'pull'], check=False, cwd=REPO_PATH, capture_output=True, text=True, timeout=60)
         if result.returncode == 0:
             logger.info("Git pull completed successfully")
             logger.info(f"Pull output: {result.stdout}")
@@ -142,10 +115,11 @@ def run_update_script():
         logger.info(f"Running update script: {UPDATE_SCRIPT}")
         result = subprocess.run(
             ['sudo', UPDATE_SCRIPT],
+            check=False,
             cwd=REPO_PATH,
             capture_output=True,
             text=True,
-            timeout=300  # 5 minutes timeout
+            timeout=300,  # 5 minutes timeout
         )
         if result.returncode == 0:
             logger.info("Update script completed successfully")
@@ -167,10 +141,7 @@ def run_update_script():
 @app.route('/health', methods=['GET'])
 def health():
     """Health check endpoint."""
-    return jsonify({
-        'status': 'healthy',
-        'timestamp': datetime.now().isoformat()
-    }), 200
+    return jsonify({'status': 'healthy', 'timestamp': datetime.now().isoformat()}), 200
 
 
 @app.route('/webhook', methods=['POST'])
@@ -183,67 +154,58 @@ def webhook():
         logger.info(f"Provided signature: {signature}")
         logger.debug(f"Payload: {request}")
         return jsonify({'error': 'Invalid signature'}), 403
-    
+
     # Parse payload
     payload = request.json
     if not payload:
         logger.error("No JSON payload received")
         return jsonify({'error': 'No payload'}), 400
-    
+
     # Log the webhook event
     event_type = request.headers.get('X-Gitea-Event', 'unknown')
     logger.info(f"Received webhook event: {event_type}")
-    
+
     # Only process push events
     if event_type != 'push':
         logger.info(f"Ignoring non-push event: {event_type}")
         return jsonify({'message': 'Event ignored'}), 200
-    
+
     # Extract branch information
     ref = payload.get('ref', '')
     pushed_branch = ref.replace('refs/heads/', '')
-    
+
     if not pushed_branch:
         logger.error("Could not determine pushed branch from webhook")
         return jsonify({'error': 'Invalid ref'}), 400
-    
+
     logger.info(f"Push event for branch: {pushed_branch}")
-    
+
     # Get current branch
     current_branch = get_current_branch()
     if not current_branch:
         return jsonify({'error': 'Could not determine current branch'}), 500
-    
+
     # Determine action: pull if current branch was pushed, otherwise fetch
     if pushed_branch == current_branch:
         logger.info(f"Pushed branch '{pushed_branch}' matches current branch '{current_branch}' - performing pull")
-        
+
         # Run git pull
         if not run_git_pull():
             return jsonify({'error': 'Git pull failed'}), 500
-        
+
         # Run update script
         if not run_update_script():
             return jsonify({'error': 'Update script failed'}), 500
-        
-        return jsonify({
-            'message': 'Repository updated and deployment script executed',
-            'branch': pushed_branch,
-            'action': 'pull'
-        }), 200
+
+        return jsonify({'message': 'Repository updated and deployment script executed', 'branch': pushed_branch, 'action': 'pull'}), 200
     else:
         logger.info(f"Pushed branch '{pushed_branch}' differs from current branch '{current_branch}' - performing fetch only")
-        
+
         # Run git fetch
         if not run_git_fetch():
             return jsonify({'error': 'Git fetch failed'}), 500
-        
-        return jsonify({
-            'message': 'Repository fetched',
-            'pushed_branch': pushed_branch,
-            'current_branch': current_branch,
-            'action': 'fetch'
-        }), 200
+
+        return jsonify({'message': 'Repository fetched', 'pushed_branch': pushed_branch, 'current_branch': current_branch, 'action': 'fetch'}), 200
 
 
 if __name__ == '__main__':
@@ -251,6 +213,6 @@ if __name__ == '__main__':
     logger.info(f"Monitoring repository: {REPO_PATH}")
     logger.info(f"Update script: {UPDATE_SCRIPT}")
     logger.info(f"Logs directory: {LOG_DIR}")
-    
+
     # Run Flask app
     app.run(host='0.0.0.0', port=PORT, debug=False)
