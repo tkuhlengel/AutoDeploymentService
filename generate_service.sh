@@ -111,7 +111,7 @@ StandardError=journal
 SyslogIdentifier=autodeployment
 
 # Security hardening
-NoNewPrivileges=true
+NoNewPrivileges=false
 PrivateTmp=true
 PrivateDevices=true
 ProtectSystem=strict
