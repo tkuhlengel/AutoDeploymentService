@@ -55,15 +55,16 @@ chmod +x "$INSTALL_DIR/generate_service.sh"
 chmod +x "$INSTALL_DIR/configure_sudo.sh"
 
 echo "Step 3: Setting up configuration..."
-if [ -f "$INSTALL_DIR/.env" ]; then
-    echo "Warning: .env file already exists at $INSTALL_DIR/.env"
-    echo "Skipping .env creation. Please verify your configuration."
-else
+#if [ -f "$INSTALL_DIR/.env" ]; then
+#    echo "Warning: .env file already exists at $INSTALL_DIR/.env"
+#    echo "Skipping .env creation. Please verify your configuration."
+#else
     # Since this is already required to run the install, we can copy it
-    cp .env "$INSTALL_DIR/.env"
+    sed "s|\${HOME}|$HOME|g; s|\$HOME|$HOME|g" .env > "$INSTALL_DIR/.env"
+
     echo "Created .env file at $INSTALL_DIR/.env"
     echo "IMPORTANT: Edit $INSTALL_DIR/.env and set your WEBHOOK_SECRET and other variables, then run this script again!"
-fi
+#fi
 
 echo "Step 4: Creating log directory..."
 mkdir -p "$LOG_DIR"
