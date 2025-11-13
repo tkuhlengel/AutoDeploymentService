@@ -20,6 +20,7 @@ A lightweight systemd service that receives webhooks from Gitea and automaticall
    - Executes the deployment script via sudo
 5. If a different branch was updated:
    - Runs `git fetch` to update remote tracking branches
+   - No deployment script is run
 
 ## Available Endpoints
 
@@ -43,11 +44,11 @@ The webhook server exposes the following endpoints:
 
 ## Prerequisites
 
-- Ubuntu/Debian Linux system
+- Ubuntu/Debian Linux system deploying a Git repository to a "deployed" folder somewhere outside the repository.
+- User `<user>` on remote linux system with appropriate permissions.
 - Python 3.8 or higher
-- Git repository cloned to `/home/trevor/ManagedFileTransfer`
-- Gitea server with admin access to configure webhooks
-- User `trevor` with appropriate permissions
+- Git repository cloned to `/home/<user>/ManagedFileTransfer`
+- Gitea server with sufficient repository admin access to configure webhooks.
 
 ## Installation
 
@@ -56,10 +57,18 @@ The webhook server exposes the following endpoints:
 Copy the `AutoDeploymentService` directory to your remote server:
 
 ```bash
-scp -r AutoDeploymentService trevor@mftserver.kuhlengel.internal:~/
+scp -r AutoDeploymentService <user>@<your_server_url>:~/
+```
+or use `git clone` on the remote server:
+
+```bash
+git clone <AutoDeploymentService_repo_url> ~/AutoDeploymentService
 ```
 
+If you use a different git clone directory, substitute it anywhere `~/AutoDeploymentService` is mentioned below.
+
 ### 2. Edit the `.env` File
+
 On the remote server, navigate to the `AutoDeploymentService` directory and edit the `.env` file:
 
 ```bash
@@ -67,62 +76,55 @@ cd ~/AutoDeploymentService
 cp .env.example .env
 vim .env
 ```
-Update the variables as needed, especially `WEBHOOK_SECRET` and `INSTALL_DIR`.
+* **Generate a secure webhook secret:**
+
+```bash
+openssl rand -hex 32
+```
+* Update the `.env` file with your webhook secret and verify all paths are correct:
+
+* Update the variables as needed, especially `WEBHOOK_SECRET` and `INSTALL_DIR`. After you run the installation script, the `.env` file in the installation directory will be used, and overwritten when you re-run the installation script.
+
+```env
+WEBHOOK_SECRET=your_generated_secret_here
+PORT=9000
+REPO_PATH=/home/<user>/ManagedFileTransfer
+UPDATE_SCRIPT=/home/<user>/ManagedFileTransfer/prod_config/scripts/uv_update_deployment.sh
+LOG_DIR=/home/<user>/.local/log/autoupdater
+```
+
+*Note*: These variables are examples; ensure all paths reflect your actual environment.
 
 ### 3. Run Installation Script
 
 SSH into the remote server and run the installation script:
 
 ```bash
-ssh trevor@mftserver.kuhlengel.internal
+ssh <user>@<your_server_url>
 cd ~/AutoDeploymentService
 ./install.sh
 ```
 
 The script will:
-- Install UV (if not already present)
-- Create `/home/trevor/autoupdater` directory
-- Copy necessary files
-- Install Python dependencies
-- Create log directory
-- Install systemd service
-
-### 3. Configure Environment
-
-Edit the configuration file:
-
-```bash
-nano /home/trevor/autoupdater/.env
-```
-
-**Generate a secure webhook secret:**
-
-```bash
-openssl rand -hex 32
-```
-
-Update the `.env` file with your webhook secret and verify all paths are correct:
-
-```env
-WEBHOOK_SECRET=your_generated_secret_here
-PORT=9000
-REPO_PATH=/home/trevor/ManagedFileTransfer
-UPDATE_SCRIPT=/home/trevor/ManagedFileTransfer/prod_config/scripts/uv_update_deployment.sh
-LOG_DIR=/home/trevor/.local/log/autoupdater
-```
+- Install the [UV package manager](https://docs.astral.sh/uv/) for the current user (if not already present). 
+- Create `/home/<user>/autoupdater` directory (or other directory as specified by your `.env` file's `INSTALL_DIR` variable)
+- Copy necessary files to the installation directory (`INSTALL_DIR`)
+- Install Python dependencies in the installation directory using `uv sync --frozen`
+- Create the log directory for the AutoDeploymentService (`LOG_DIR`)
+- Generate and Install systemd service file (`SERVICE_FILE`) into `SYSTEMD_DIR`
 
 ### 4. Configure Passwordless Sudo
 
 The service needs to run the deployment script with sudo privileges. Use the provided helper script:
 
 ```bash
-cd /home/trevor/autoupdater
+cd /home/<user>/autoupdater # or your INSTALL_DIR
 ./configure_sudo.sh
 ```
 
 This script will:
-- Read the UPDATE_SCRIPT path from your .env file
-- Create a sudoers configuration file for the current user
+- Read the UPDATE_SCRIPT path from your `.env` file
+- Create a sudoers configuration file for the current user in `/etc/sudoers.d/autoupdater`
 - Validate the configuration
 - Show you what commands can now be run without a password
 
@@ -133,18 +135,21 @@ If you prefer to configure manually:
 ```bash
 sudo visudo -f /etc/sudoers.d/autoupdater
 ```
+any text editory will do, like `nano` or `vim`.
 
-Add the following line:
+Add the following line, replacing `<user>` with your username and `UPDATE_SCRIPT` with the path to your deployment script inside the git repository you want to auto-deploy on changes:
 
+We provide an example here to a repository called `ManagedFileTransfer`, but be sure to replace it with your actual absolute path to the script. 
 ```
-trevor ALL=(ALL) NOPASSWD: /home/trevor/ManagedFileTransfer/prod_config/scripts/uv_update_deployment.sh
+```bash
+<user> ALL=(ALL) NOPASSWD: /home/<user>/ManagedFileTransfer/prod_config/scripts/uv_update_deployment.sh
 ```
 
-Save and exit.
+Save and exit (`:wq` if you never used `vim` before).
 
 ### 5. Configure Firewall (if applicable)
 
-If you have a firewall enabled, allow incoming connections on port 9000:
+If you have a firewall enabled, allow incoming connections on port 9000 and verify the status:
 
 ```bash
 sudo ufw allow 9000/tcp
@@ -153,7 +158,7 @@ sudo ufw status
 
 ### 6. Start the Service
 
-Enable and start the autoupdater service:
+Enable and start the autoupdater service. If you named it differently, substitute `autoupdater` with your service name (`SERVICE_FILE` in your `.env`):
 
 ```bash
 sudo systemctl enable autoupdater
@@ -182,8 +187,8 @@ You should see "active (running)" status.
 Fill in the webhook configuration:
 
 - **Target URL**: Choose one of the following:
-  - `http://mftserver.kuhlengel.internal:9000/webhook` (recommended)
-  - `http://mftserver.kuhlengel.internal:9000/` (also works)
+  - `http://<your_server_url>:9000/webhook` (recommended)
+  - `http://<your_server_url>:9000/` (also works)
   
   > **Note:** Both URLs work. The webhook endpoint accepts POST requests at both the root path (`/`) and the `/webhook` path for maximum compatibility with different webhook configurations.
 
@@ -209,7 +214,7 @@ journalctl -u autoupdater -n 50
 Generates a systemd service file customized to your environment:
 
 ```bash
-cd /home/trevor/autoupdater
+cd /home/<user>/autoupdater
 ./generate_service.sh
 ```
 
@@ -231,9 +236,10 @@ This script:
 Configures passwordless sudo for the deployment script:
 
 ```bash
-cd /home/trevor/autoupdater
+cd ~/autoupdater
 ./configure_sudo.sh
 ```
+`~/autoupdater` can be any path where you clone the repository.
 
 This script:
 - Reads UPDATE_SCRIPT from `.env`
@@ -266,7 +272,7 @@ journalctl -u autoupdater -f
 
 **Log file:**
 ```bash
-tail -f /home/trevor/.local/log/autoupdater/autoupdater.log
+tail -f ${HOME}/.local/log/autoupdater/autoupdater.log
 ```
 
 ### Check Service Status
@@ -317,26 +323,26 @@ sudo ufw status
 **Verify Gitea can reach the server:**
 ```bash
 # From Gitea server
-curl http://mftserver.kuhlengel.internal:9000/health
+curl http://<your_server_url>:9000/health
 ```
 
 ### Git Pull Fails
 
 **Check repository permissions:**
 ```bash
-ls -la /home/trevor/ManagedFileTransfer
+ls -la /home/<user>/ManagedFileTransfer
 ```
 
 **Verify git is configured:**
 ```bash
-cd /home/trevor/ManagedFileTransfer
+cd /home/<user>/ManagedFileTransfer
 git status
 git remote -v
 ```
 
 **Check for merge conflicts:**
 ```bash
-cd /home/trevor/ManagedFileTransfer
+cd /home/<user>/ManagedFileTransfer
 git status
 ```
 
@@ -344,12 +350,12 @@ git status
 
 **Test sudo access:**
 ```bash
-sudo /home/trevor/ManagedFileTransfer/prod_config/scripts/uv_update_deployment.sh
+sudo /home/<user>/ManagedFileTransfer/prod_config/scripts/uv_update_deployment.sh
 ```
 
 **Check script permissions:**
 ```bash
-ls -l /home/trevor/ManagedFileTransfer/prod_config/scripts/uv_update_deployment.sh
+ls -l /home/<user>/ManagedFileTransfer/prod_config/scripts/uv_update_deployment.sh
 ```
 
 **Review script output in logs:**
@@ -360,7 +366,7 @@ journalctl -u autoupdater -n 100 | grep -A 20 "Running update script"
 ### Signature Verification Fails
 
 **Verify webhook secret matches:**
-1. Check `.env` file: `cat /home/trevor/autoupdater/.env`
+1. Check `.env` file: `cat /home/<user>/autoupdater/.env`
 2. Compare with Gitea webhook configuration
 3. Restart service after changing: `sudo systemctl restart autoupdater`
 
@@ -399,11 +405,11 @@ To update the autoupdater itself:
 1. Make changes to the files on your local machine
 2. Copy updated files to the server:
    ```bash
-   scp webhook_server.py trevor@mftserver.kuhlengel.internal:~/autoupdater/
+   scp webhook_server.py <user>@<your_server_url>:~/autoupdater/
    ```
 3. Restart the service:
    ```bash
-   ssh trevor@mftserver.kuhlengel.internal
+   ssh <user>@<your_server_url>
    sudo systemctl restart autoupdater
    ```
 
@@ -429,10 +435,10 @@ sudo rm /etc/systemd/system/autoupdater.service
 sudo systemctl daemon-reload
 
 # Remove installation directory
-rm -rf /home/trevor/autoupdater
+rm -rf ${HOME}/autoupdater
 
 # Remove logs
-rm -rf /home/trevor/.local/log/autoupdater
+rm -rf ${HOME}/.local/log/autoupdater
 
 # Remove sudo configuration
 sudo rm /etc/sudoers.d/autoupdater
@@ -457,10 +463,10 @@ sudo rm /etc/sudoers.d/autoupdater
 
 ## License
 
-This autoupdater is provided as-is for the ManagedFileTransfer project.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Support
 
 For issues or questions, check the logs first:
-- `/home/trevor/.local/log/autoupdater/autoupdater.log`
+- `${HOME}/.local/log/autoupdater/autoupdater.log`
 - `journalctl -u autoupdater`

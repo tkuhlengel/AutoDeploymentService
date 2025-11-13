@@ -1,15 +1,23 @@
 [project]
-name = "gitea-autoupdater"
+name = "AutoDeploymentService"
 version = "1.0.0"
-description = "Gitea webhook receiver for automatic repository updates"
+description = "Gitea/Forgejo compatible webhook receiver for automatic repository updates"
 requires-python = ">=3.8"
 dependencies = [
     "flask>=3.0.0",
     "python-dotenv>=1.0.0",
-    "pytest>=7.0.0",
-    "pytest-cov>=4.0.0",
     "requests>=2.31.0",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
+    "pytest-cov>=5.0.0",
+]
+
+[[tool.uv.index]]
+url = "https://pkgs.safetycli.com/repository/public/pypi/simple/"
+default = true
 
 #[build-system]
 #requires = ["hatchling"]

@@ -80,3 +80,7 @@ autodeployment.service
 test_repo/
 /tmp/test_repo/
 /tmp/autoupdater_test_logs/
+
+# Linting
+.ruff_cache/
+

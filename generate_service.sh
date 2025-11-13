@@ -111,19 +111,19 @@ StandardError=journal
 SyslogIdentifier=autodeployment
 
 # Security hardening
-NoNewPrivileges=false
-PrivateTmp=true
-PrivateDevices=true
-ProtectSystem=strict
-ProtectHome=read-only
-ProtectKernelTunables=true
-ProtectKernelModules=true
-ProtectControlGroups=true
-RestrictRealtime=true
-RestrictSUIDSGID=true
-RestrictNamespaces=true
-LockPersonality=true
-ReadWritePaths=$LOG_DIR $REPO_PATH $HOME/.cache/uv $INSTALL_DIR
+#NoNewPrivileges=false
+#PrivateTmp=true
+#PrivateDevices=true
+#ProtectSystem=strict
+#ProtectHome=read-only
+#ProtectKernelTunables=true
+#ProtectKernelModules=true
+#ProtectControlGroups=true
+#RestrictRealtime=true
+#RestrictSUIDSGID=false
+#RestrictNamespaces=true
+#LockPersonality=true
+#ReadWritePaths=$LOG_DIR $REPO_PATH $HOME/.cache/uv $INSTALL_DIR
 
 # Resource limits
 MemoryMax=512M
