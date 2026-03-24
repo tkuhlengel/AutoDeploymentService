@@ -103,7 +103,7 @@ Group=$USER_GROUP
 WorkingDirectory=$INSTALL_DIR
 Environment="PATH=$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin"
 EnvironmentFile=$INSTALL_DIR/.env
-ExecStart=uv run $INSTALL_DIR/webhook_server.py
+ExecStart=$UV_PATH run $INSTALL_DIR/webhook_server.py
 Restart=always
 RestartSec=10
 StandardOutput=journal
