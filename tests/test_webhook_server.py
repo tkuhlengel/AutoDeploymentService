@@ -18,7 +18,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 
 # Import the app
-sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 import webhook_server
 
 
@@ -216,9 +216,32 @@ class TestUpdateScript:
 
         result = webhook_server.run_update_script()
         assert result is True
-        # Verify sudo was used
-        args = mock_run.call_args[0][0]
-        assert args[0] == 'sudo'
+
+    @patch('subprocess.run')
+    def test_run_update_script_uses_sudo_when_configured(self, mock_run) -> None:
+        """Test that sudo is used when UPDATE_SCRIPT_NEEDS_SUDO is true."""
+        mock_run.return_value = MagicMock(returncode=0, stdout='', stderr='')
+        original = webhook_server.UPDATE_SCRIPT_NEEDS_SUDO
+        try:
+            webhook_server.UPDATE_SCRIPT_NEEDS_SUDO = True
+            webhook_server.run_update_script()
+            args = mock_run.call_args[0][0]
+            assert args[0] == 'sudo'
+        finally:
+            webhook_server.UPDATE_SCRIPT_NEEDS_SUDO = original
+
+    @patch('subprocess.run')
+    def test_run_update_script_skips_sudo_when_disabled(self, mock_run) -> None:
+        """Test that sudo is not used when UPDATE_SCRIPT_NEEDS_SUDO is false."""
+        mock_run.return_value = MagicMock(returncode=0, stdout='', stderr='')
+        original = webhook_server.UPDATE_SCRIPT_NEEDS_SUDO
+        try:
+            webhook_server.UPDATE_SCRIPT_NEEDS_SUDO = False
+            webhook_server.run_update_script()
+            args = mock_run.call_args[0][0]
+            assert args[0] != 'sudo'
+        finally:
+            webhook_server.UPDATE_SCRIPT_NEEDS_SUDO = original
 
     @patch('subprocess.run')
     def test_run_update_script_failure(self, mock_run) -> None:

@@ -24,6 +24,7 @@ WEBHOOK_SECRET = os.getenv('WEBHOOK_SECRET', '')
 PORT = int(os.getenv('PORT', 9000))
 REPO_PATH = os.getenv('REPO_PATH', '/home/trevor/ManagedFileTransfer')
 UPDATE_SCRIPT = os.getenv('UPDATE_SCRIPT', '/home/trevor/ManagedFileTransfer/prod_config/scripts/uv_update_deployment.sh')
+UPDATE_SCRIPT_NEEDS_SUDO = os.getenv('UPDATE_SCRIPT_NEEDS_SUDO', 'true').lower() in ('true', '1', 'yes')
 LOG_DIR = os.getenv('LOG_DIR', '/home/trevor/.local/log/autodeploymentservice')
 DEBUG = os.getenv('DEBUG', 'false').lower() in ('true', '1', 'yes')
 
@@ -113,11 +114,12 @@ def run_git_pull() -> bool:
 
 
 def run_update_script() -> bool:
-    """Run the deployment update script via sudo."""
+    """Run the deployment update script, optionally via sudo."""
     try:
-        logger.info(f"Running update script: {UPDATE_SCRIPT}")
+        cmd = ['sudo', UPDATE_SCRIPT] if UPDATE_SCRIPT_NEEDS_SUDO else [UPDATE_SCRIPT]
+        logger.info(f"Running update script: {' '.join(cmd)}")
         result = subprocess.run(
-            ['sudo', UPDATE_SCRIPT],
+            cmd,
             check=False,
             cwd=REPO_PATH,
             capture_output=True,
